@@ -62,7 +62,7 @@ def analyze_text():
 
     return jsonify({
        "input_snippet": text[:200] + "..." if len(text) > 200 else text,
-"full_input_length": len(text)
+"full_input_length": len(text),
 
         "tokens": result
     })
