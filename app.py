@@ -1,37 +1,36 @@
 from flask import Flask, request, jsonify
-import spacy
-from nltk.stem import PorterStemmer
 import nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet
+import os
 
-# تأكد من تحميل بيانات nltk الضرورية
-nltk.download('punkt')
+# تحميل قاموس WordNet إذا لم يكن محمّلًا
+try:
+    nltk.data.find('corpora/wordnet')
+except LookupError:
+    nltk.download('wordnet')
+    nltk.download('omw-1.4')  # دعم اللغات الأخرى
 
-# تحميل نموذج spaCy
-nlp = spacy.load("en_core_web_sm")
-stemmer = PorterStemmer()
-
+# إعداد الواجهة
 app = Flask(__name__)
+lemmatizer = WordNetLemmatizer()
 
 @app.route("/")
 def home():
-    return "✅ Flask API with stemming is live!"
+    return "✅ Flask API with NLTK lemmatization is live!"
 
 @app.route('/analyze', methods=['POST'])
 def analyze_text():
     data = request.get_json()
     text = data.get("text", "")
-    doc = nlp(text)
+    tokens = text.split()  # يمكنك استخدام spaCy إذا أردت تحليلًا أدق
 
     result = []
-    for token in doc:
+    for token in tokens:
+        lemma = lemmatizer.lemmatize(token)
         result.append({
-            "text": token.text,
-            "lemma": token.lemma_,
-            "stem": stemmer.stem(token.text),
-            "pos": token.pos_,
-            "tag": token.tag_,
-            "dep": token.dep_,
-            "head": token.head.text
+            "text": token,
+            "lemma": lemma
         })
 
     return jsonify({
