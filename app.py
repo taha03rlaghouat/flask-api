@@ -4,6 +4,9 @@ import spacy
 nlp = spacy.load("en_core_web_sm")
 
 app = Flask(__name__)
+@app.route("/")
+def home():
+    return "✅ Flask API is live on Render!"
 
 @app.route('/analyze', methods=['POST'])
 def analyze_text():
