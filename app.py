@@ -77,7 +77,11 @@ def analyze_text():
         "full_input_length": len(text),
         "input_snippet": text[:200] + "..." if len(text) > 200 else text,
         "tokens": result,
-        "stats": stats
+        "stats": {
+        "sentences": num_sentences,
+        "tokens": num_tokens,
+        "top_verbs": [{"verb": v, "count": c} for v, c in top_verbs]
+    },
     })
 
 if __name__ == "__main__":
