@@ -59,12 +59,25 @@ def analyze_text():
             "dep": token.dep_,
             "head": token.head.text
         })
+    # === التحليل الإحصائي العام ===
+    num_sentences = len(list(doc.sents))
+    num_tokens = len([t for t in doc if not t.is_punct and not t.is_space])
+    verbs = [token.lemma_ for token in doc if token.pos_ == "VERB"]
+    
+    from collections import Counter
+    most_common_verbs = Counter(verbs).most_common(5)  # أكثر 5 أفعال
+
+    stats = {
+        "num_sentences": num_sentences,
+        "num_tokens": num_tokens,
+        "top_verbs": most_common_verbs
+    }
 
     return jsonify({
-       "input_snippet": text[:200] + "..." if len(text) > 200 else text,
-"full_input_length": len(text),
-
-        "tokens": result
+      "input": text[:200] + "..." if len(text) > 200 else text,
+        "length": len(text),
+        "tokens": result,
+        "stats": stats
     })
 
 
