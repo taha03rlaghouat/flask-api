@@ -4,7 +4,7 @@ import nltk
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
 
-# تحميل النماذج إن لم تكن موجودة
+# تحميل ملفات WordNet إذا لم تكن موجودة
 try:
     nltk.data.find('corpora/wordnet')
 except LookupError:
@@ -15,24 +15,24 @@ nlp = spacy.load("en_core_web_sm")
 lemmatizer = WordNetLemmatizer()
 app = Flask(__name__)
 
-# دالة لتحويل POS من spaCy إلى WordNet
-def get_wordnet_pos(spacy_pos):
-    if spacy_pos.startswith('V'):
-        return wordnet.VERB
-    elif spacy_pos.startswith('N'):
-        return wordnet.NOUN
-    elif spacy_pos.startswith('J'):
+# تحويل spaCy POS إلى WordNet POS
+def get_wordnet_pos(spacy_tag):
+    if spacy_tag.startswith("J"):
         return wordnet.ADJ
-    elif spacy_pos.startswith('R'):
+    elif spacy_tag.startswith("V"):
+        return wordnet.VERB
+    elif spacy_tag.startswith("N"):
+        return wordnet.NOUN
+    elif spacy_tag.startswith("R"):
         return wordnet.ADV
     else:
         return wordnet.NOUN  # افتراضيًا noun
 
 @app.route("/")
 def home():
-    return "✅ Flask API using spaCy + NLTK is live!"
+    return "✅ Flask NLP API is live!"
 
-@app.route('/analyze', methods=['POST'])
+@app.route("/analyze", methods=["POST"])
 def analyze_text():
     data = request.get_json()
     text = data.get("text", "")
@@ -40,13 +40,13 @@ def analyze_text():
 
     result = []
     for token in doc:
-        wn_pos = get_wordnet_pos(token.tag_)  # استخدم tag_ وليس pos_
-        lemma = lemmatizer.lemmatize(token.text, wn_pos)
+        wn_pos = get_wordnet_pos(token.tag_)
+        lemma_nltk = lemmatizer.lemmatize(token.text, wn_pos)
 
         result.append({
             "text": token.text,
             "lemma_spacy": token.lemma_,
-            "lemma_nltk": lemma,
+            "lemma_nltk": lemma_nltk,
             "pos": token.pos_,
             "tag": token.tag_,
             "dep": token.dep_,
