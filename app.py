@@ -69,8 +69,9 @@ def analyze_text():
     stats = {
         "num_sentences": num_sentences,
         "num_tokens": num_tokens,
-        "top_verbs": top_verbs
+    "top_verbs": [{"verb": verb, "count": count} for verb, count in top_verbs]
     }
+
 
     return jsonify({
         "full_input_length": len(text),
