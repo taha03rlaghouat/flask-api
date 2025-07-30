@@ -3,6 +3,7 @@ import spacy
 import nltk
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
+from collections import Counter
 
 # تحميل ملفات WordNet إذا لم تكن موجودة
 try:
@@ -26,7 +27,7 @@ def get_wordnet_pos(spacy_tag):
     elif spacy_tag.startswith("R"):
         return wordnet.ADV
     else:
-        return wordnet.NOUN  # افتراضيًا noun
+        return wordnet.NOUN
 
 @app.route("/")
 def home():
@@ -36,9 +37,7 @@ def home():
 def analyze_text():
     data = request.get_json()
     text = data.get("text", "")
-  
-
-    # معالجة النصوص الطويلة
+    
     if not text or len(text.strip()) == 0:
         return jsonify({"error": "No text provided"}), 400
     if len(text) > 100000:
@@ -46,6 +45,7 @@ def analyze_text():
 
     doc = nlp(text)
 
+    # === تحليل كل كلمة ===
     result = []
     for token in doc:
         wn_pos = get_wordnet_pos(token.tag_)
@@ -53,33 +53,31 @@ def analyze_text():
         result.append({
             "text": token.text,
             "lemma_spacy": token.lemma_,
-             "lemma_nltk": lemma_nltk,
+            "lemma_nltk": lemma_nltk,
             "pos": token.pos_,
             "tag": token.tag_,
             "dep": token.dep_,
             "head": token.head.text
         })
+
     # === التحليل الإحصائي العام ===
     num_sentences = len(list(doc.sents))
     num_tokens = len([t for t in doc if not t.is_punct and not t.is_space])
     verbs = [token.lemma_ for token in doc if token.pos_ == "VERB"]
-    
-    from collections import Counter
-    most_common_verbs = Counter(verbs).most_common(5)  # أكثر 5 أفعال
+    top_verbs = Counter(verbs).most_common(5)
 
     stats = {
         "num_sentences": num_sentences,
         "num_tokens": num_tokens,
-        "top_verbs": most_common_verbs
+        "top_verbs": top_verbs
     }
 
     return jsonify({
-      "input": text[:200] + "..." if len(text) > 200 else text,
-        "length": len(text),
+        "full_input_length": len(text),
+        "input_snippet": text[:200] + "..." if len(text) > 200 else text,
         "tokens": result,
         "stats": stats
     })
-
 
 if __name__ == "__main__":
     app.run()
