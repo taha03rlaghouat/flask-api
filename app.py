@@ -32,21 +32,28 @@ def get_wordnet_pos(spacy_tag):
 def home():
     return "✅ Flask NLP API is live!"
 
-@app.route("/analyze", methods=["POST"])
+@app.route('/analyze', methods=['POST'])
 def analyze_text():
     data = request.get_json()
     text = data.get("text", "")
+  
+
+    # معالجة النصوص الطويلة
+    if not text or len(text.strip()) == 0:
+        return jsonify({"error": "No text provided"}), 400
+    if len(text) > 100000:
+        return jsonify({"error": "Text too long (limit: 100,000 characters)"}), 413
+
     doc = nlp(text)
 
     result = []
     for token in doc:
         wn_pos = get_wordnet_pos(token.tag_)
         lemma_nltk = lemmatizer.lemmatize(token.text, wn_pos)
-
         result.append({
             "text": token.text,
             "lemma_spacy": token.lemma_,
-            "lemma_nltk": lemma_nltk,
+             "lemma_nltk": lemma_nltk,
             "pos": token.pos_,
             "tag": token.tag_,
             "dep": token.dep_,
@@ -54,9 +61,12 @@ def analyze_text():
         })
 
     return jsonify({
-        "input": text,
+       "input_snippet": text[:200] + "..." if len(text) > 200 else text,
+"full_input_length": len(text)
+
         "tokens": result
     })
+
 
 if __name__ == "__main__":
     app.run()
